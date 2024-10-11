@@ -3,6 +3,13 @@ import './App.css';
 function App() {
  return (
    <div className='app-container'>
+    <form className="note-form">
+       <div><input placeholder="Note Title"></input></div>
+
+       <div><textarea></textarea></div>
+
+       <div><button type="submit">Create Note</button></div>
+    </form>
      <div className="note-individual">
        <button>
          x
