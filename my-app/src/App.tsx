@@ -24,25 +24,60 @@ function App() {
     setCurrentTheme(currentTheme === themes.light ? themes.dark : themes.light);
   };
 
+  const [notes, setNotes] = useState(dummyNotesList); 
+const initialNote = {
+   id: -1,
+   title: "",
+   content: "",
+   label: Label.other,
+ };
+
+const [createNote, setCreateNote] = useState(initialNote);
+
+const createNoteHandler = (event: React.FormEvent) => {
+   event.preventDefault();
+   console.log("title: ", createNote.title);
+   console.log("content: ", createNote.content);
+   createNote.id = notes.length + 1;
+   setNotes([createNote, ...notes]);
+   setCreateNote(initialNote);
+ };
+
  return (
 
   <ThemeContext.Provider value={currentTheme}>
    <div className='app-container' style={{background: currentTheme.background,
        color: currentTheme.foreground }}>
     
-    <form style={{margin: '10px'}}className="note-form">
-       <div><input style={{width: '210px'}} placeholder="Note Title"></input></div>
+    <form style={{margin: '10px'}} className="note-form"  onSubmit={createNoteHandler}>
+       <div><input style={{width: '210px'}} placeholder="Note Title" onChange={(event) =>
+          	setCreateNote({ ...createNote, title: event.target.value })}
+        	required></input></div>
 
-       <div><textarea></textarea></div>
+       <div><textarea onChange={(event) =>
+          	setCreateNote({ ...createNote, content: event.target.value })}
+        	required></textarea></div>
+
+    <div>
+     	<select
+       	onChange={(event) =>
+         	setCreateNote({ ...createNote, label: event.target.value as Label })}
+       	required>
+       	<option value={Label.personal}>Personal</option>
+       	<option value={Label.study}>Study</option>
+       	<option value={Label.work}>Work</option>
+       	<option value={Label.other}>Other</option>
+     	</select>
+   	</div>
 
        <div><button type="submit">Create Note</button></div>
     </form>
 
     <div className="notes-grid" style={{margin: '30px'}}>
-       {dummyNotesList.map((note) => (
-         <div
+       {notes.map((note) => (
+         <div 
            key={note.id}
-           className="note-item">
+           className="note-item"> 
            <div className="notes-header">
            <button onClick={() => handleLike(note)}>
             {favorites.includes(note.title) ? '❤️' : '♡'}</button>
