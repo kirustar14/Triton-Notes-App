@@ -1,6 +1,7 @@
 import './App.css';
 import { Label, Note } from "./types"; // Import the Label type from the appropriate module
 import { dummyNotesList } from "./constants"; // Import the dummyNotesList from the appropriate module
+import { ClickCounter } from "./hooksExercise";
 
 function App() {
  return (
@@ -13,7 +14,7 @@ function App() {
        <div><button type="submit">Create Note</button></div>
     </form>
 
-          <div className="notes-grid">
+    <div className="notes-grid">
        {dummyNotesList.map((note) => (
          <div
            key={note.id}
@@ -27,6 +28,7 @@ function App() {
          </div>
        ))}
      </div>
+     <ClickCounter/>
    </div>
 
  );
