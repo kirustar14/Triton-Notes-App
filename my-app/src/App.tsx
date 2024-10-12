@@ -7,13 +7,14 @@ import { useState, useEffect, useContext } from 'react';
 
 function App() {
 
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<number[]>([]);
+  
   function handleLike(note: Note){
-    setFavorites((prevFavorites) => {
-      if (prevFavorites.includes(note.title)) {
-        return prevFavorites.filter(title => title !== note.title); 
+    setFavorites(prevFavorites => {
+      if (prevFavorites.includes(note.id)) {
+        return prevFavorites.filter(id => id !== note.id); 
       } else {
-        return [...prevFavorites, note.title];
+        return [...prevFavorites, note.id]; // Add by ID
       } 
     });
   }
@@ -24,13 +25,14 @@ function App() {
     setCurrentTheme(currentTheme === themes.light ? themes.dark : themes.light);
   };
 
-  const [notes, setNotes] = useState(dummyNotesList); 
-const initialNote = {
+  const [notes, setNotes] = useState(dummyNotesList);
+  
+  const initialNote = {
    id: -1,
    title: "",
    content: "",
    label: Label.other,
- };
+  };
 
 const [createNote, setCreateNote] = useState(initialNote);
 
@@ -43,6 +45,41 @@ const createNoteHandler = (event: React.FormEvent) => {
    setCreateNote(initialNote);
  };
 
+function handleNoteChange(note: Note, type: string, newThing: string){
+  
+  const updatedNote = { ...note };
+
+  if(type == 'title'){
+    const oldTitle = updatedNote.title;
+    updatedNote.title = newThing; 
+    const wasLiked = favorites.includes(note.id);
+    setFavorites(prevFavorites => {
+      const newFavorites = prevFavorites.filter(id => id !== note.id); // Remove old ID
+      if (wasLiked) {
+        newFavorites.push(note.id); // Keep the ID if it was liked
+      }
+      return newFavorites;
+    });
+  }
+
+  else if (type == 'content'){
+    updatedNote.content=newThing; 
+  }
+
+  setNotes(prevNotes => prevNotes.map(( x =>
+    x.id === updatedNote.id ? updatedNote : x)) ); 
+
+}
+
+
+const handleDeleteNote = (noteId: number) => {
+  setNotes(prevNotes => prevNotes.filter(note => note.id !== noteId));
+  setFavorites(prevFavorites => prevFavorites.filter(id => id !== noteId)); // Remove from favorites if deleted
+};
+
+
+
+
  return (
 
   <ThemeContext.Provider value={currentTheme}>
@@ -52,17 +89,17 @@ const createNoteHandler = (event: React.FormEvent) => {
     <form style={{margin: '10px'}} className="note-form"  onSubmit={createNoteHandler}>
        <div><input style={{width: '210px'}} placeholder="Note Title" onChange={(event) =>
           	setCreateNote({ ...createNote, title: event.target.value })}
-        	required></input></div>
+             required></input></div>
 
        <div><textarea onChange={(event) =>
           	setCreateNote({ ...createNote, content: event.target.value })}
-        	required></textarea></div>
+        	 required></textarea></div>
 
     <div>
      	<select
        	onChange={(event) =>
          	setCreateNote({ ...createNote, label: event.target.value as Label })}
-       	required>
+            required>
        	<option value={Label.personal}>Personal</option>
        	<option value={Label.study}>Study</option>
        	<option value={Label.work}>Work</option>
@@ -80,24 +117,28 @@ const createNoteHandler = (event: React.FormEvent) => {
            className="note-item"> 
            <div className="notes-header">
            <button onClick={() => handleLike(note)}>
-            {favorites.includes(note.title) ? '❤️' : '♡'}</button>
-             <button>x</button>
+            {favorites.includes(note.id) ? '❤️' : '♡'}</button>
+             <button onClick={() => handleDeleteNote(note.id)}>x</button>
            </div>
            <div style={{color: 'black'}}>
-           <h2> {note.title} </h2>
-           <p> {note.content} </p>
-           <p> {note.label} </p>
+              <h2 contentEditable='true' id = 'title' onBlur={(e) => 
+              handleNoteChange(note, 'title', e.currentTarget.innerText) }> {note.title}  </h2>
+              <p contentEditable='true' id = 'content' onBlur={(e) => 
+              handleNoteChange(note, 'content', e.currentTarget.innerText) }>  {note.content} </p>
+              <p> {note.label} </p>
            </div>
          </div>
        ))}
      </div>
-     <div style={{margin: '20px'}}>
-      <p style={{ fontWeight: 'bold', fontSize: '20px' }}>List of Favorites </p>
-      <ul style={{ listStyleType: 'none', padding: 0 }}>
-        {favorites.map((title) => (
-          <li style = {{marginBottom: '10px'}}>{title}</li>
-        ))}
-      </ul>
+
+     <div style={{ margin: '20px' }}>
+      <p style={{ fontWeight: 'bold', fontSize: '20px' }}>List of Favorites</p>
+        <ul style={{ listStyleType: 'none', padding: 0 }}>
+          {favorites.map((id) => {
+          const favoriteNote = notes.find(note => note.id === id);
+        return favoriteNote ? <li key={id} style={{ marginBottom: '10px' }}>{favoriteNote.title}</li> : null;
+          })}
+        </ul>
     </div>
     <button style = {{height: '50px', margin: '10px'}}onClick={toggleTheme}> Toggle Theme </button>
    </div>
